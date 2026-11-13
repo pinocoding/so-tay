@@ -1,0 +1,169 @@
+---
+title: Claude の使い方
+description: Claude Code が動く場所と、どこからでも作業を続ける方法。
+icon: MonitorSmartphone
+---
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Claude Code は **ひとつのエージェントエンジン** で、さまざまな場所から使えます。状況に合った場所を選んでも、プロジェクト、`CLAUDE.md`、設定はそのままです。
+
+![Claude Code が動く場所：CLI、デスクトップ、エディタ、Web、モバイル、さらに Remote Control、Teleport、Dispatch、Channels、Slack、Chrome](/images/claude-code/surfaces.svg)
+
+## サーフェス（利用場所）
+
+### CLI
+
+ターミナルは最初からある、最も柔軟な使い方です。他のすべてはこれを土台にしています。
+
+```bash
+cd my-project
+claude                         # 対話セッション
+claude "このプロジェクトを説明して"  # 最初のプロンプト付きで開始
+claude -p "TODO コメントを一覧にして"  # 1 回だけ実行して結果を出力し終了
+```
+
+**使いどころ：** ターミナル中心で作業する、スクリプトや自動化をしたい、新機能をいち早く使いたい。
+
+### デスクトップ
+
+**Claude Code Desktop** アプリはグラフィカルな画面を提供します。差分を見やすく表示し、複数セッションを並べて扱え、ターミナルは不要です。
+
+```text
+/desktop    # ターミナルのセッション内で実行：このセッションをデスクトップアプリで続ける
+```
+
+**使いどころ：** 入力よりクリック操作が好き、差分を目で確認したい。
+
+### Web
+
+**Claude Code on the web** は、あなたのパソコンではなく Anthropic のクラウドでセッションを実行します。GitHub リポジトリをクラウド環境にクローンするので、ノート PC を閉じてもセッションは動き続けます。
+
+```bash
+# ターミナルからクラウドセッションを開始（先にコミットを push しておく）
+git push
+claude --cloud "サインアップフォームに入力チェックを追加して"
+```
+
+[claude.ai/code](https://claude.ai/code) から始めることもできます。
+
+**使いどころ：** 長いタスク、複数タスクの並行実行、別のデバイスから進捗を確認したいとき。
+
+### モバイル
+
+スマートフォン専用の Claude Code アプリはありません。**Claude アプリ**（iOS / Android）の **Code** タブで Claude Code セッションを開きます。スマートフォンからできること：
+
+- クラウドセッションの開始と確認
+- 自分のパソコンで動いているセッションの操作（Remote Control）
+- Dispatch へのタスク送信
+
+```text
+/mobile    # アプリをインストールするための QR コードを表示
+```
+
+### エディタ拡張
+
+**VS Code**（Cursor などのフォークを含む）と **JetBrains IDE**（IntelliJ IDEA、PyCharm、WebStorm など）向けの拡張機能で、Claude Code をサイドバーに表示し、コードの横に差分をインライン表示できます。Claude は開いているファイル、選択範囲、エディタのエラーも把握します。
+
+<Steps>
+<Step>VS Code Marketplace または JetBrains Marketplace から「Claude Code」をインストールします。</Step>
+<Step>プロジェクトを開き、サイドバーの Claude アイコンをクリックします。</Step>
+<Step>コードを選択して質問します：`この関数を説明して、もっとシンプルな書き方を提案して`</Step>
+</Steps>
+
+## どこからでも作業する
+
+### Remote Control
+
+Remote Control を使うと、**自分のパソコンで動いている** セッションを [claude.ai/code](https://claude.ai/code) や Claude モバイルアプリから操作できます。Claude はローカルで動き続けるので、ファイル、MCP サーバー、設定はすべてそのまま使えます。
+
+```bash
+claude remote-control      # リモート操作できるセッションを開始
+```
+
+```text
+/remote-control            # 現在のセッションをリモート操作可能にする
+```
+
+**例：** 机で長いリファクタリングを始め、外出中にスマートフォンから Claude の次のステップを承認する。
+
+### Teleport とハンドオフ
+
+会話を失わずに、**サーフェス間で作業を移動** できます。
+
+| コマンド | 方向 |
+| --- | --- |
+| `claude --cloud "task"` | ターミナル → 新しいクラウドセッション |
+| `claude --teleport` | クラウドセッション → ターミナル（ブランチをチェックアウトし履歴を読み込む） |
+| `/teleport`（または `/tp`） | 上と同じ。セッション内から実行 |
+| `/desktop` | ターミナル → デスクトップアプリ |
+
+```bash
+claude --teleport                 # 一覧からクラウドセッションを選ぶ
+claude --teleport <session-id>    # 特定のセッションを再開
+```
+
+<Callout type="warn">
+Teleport には、きれいな Git 状態（変更は stash を提案されます）と push 済みのブランチが必要です。ターミナル側には独立したコピーが作られ、そこでの作業はクラウドセッションには反映されません。
+</Callout>
+
+### Dispatch
+
+**Dispatch** は、スマートフォンからメッセージを送る継続的な会話です。タスクを伝えると、それが開発作業なら Dispatch があなたのパソコンのデスクトップアプリで Claude Code セッションを開始し、完了時や承認が必要なときに通知します。
+
+```text
+あなた（スマホ）: 「my-api の依存関係を更新してテストを実行して」
+Dispatch:          デスクトップでセッション開始 → 実行 → 「完了。テスト 2 件を修正しました。PR を作成しますか？」
+```
+
+条件：Pro または Max プランで、パソコンの電源が入りデスクトップアプリが起動していること。
+
+### Channels
+
+**Channels** は、外部からのメッセージやイベント（Telegram、Discord、iMessage、Webhook）を **すでに動いているセッションに送り込み**、あなたが離れていても Claude が反応できるようにします。Channel はプラグイン（MCP サーバー）としてインストールします。
+
+**例：** 監視ツールの Webhook が「API エラー率が高い」と実行中のセッションに通知し、Claude がログを読んで修正案を作る。
+
+## 連携
+
+### Slack
+
+Slack のチャンネルで、バグ報告や依頼と一緒に `@Claude` をメンションします。Claude はクラウドセッションを開始し、スレッドに進捗を投稿し、最後に要約と「セッションを見る」「プルリクエストを作成」ボタンを返します。
+
+```text
+@Claude クーポン適用時に /orders ページの合計金額が間違っています。shop-web で修正してください。
+```
+
+**Claude Tag** は Team / Enterprise プラン向けの組織管理版で、共有のアイデンティティと管理者によるアクセス制御があります。
+
+### Chrome
+
+**Claude in Chrome** 拡張機能を使うと、Claude Code がブラウザを操作できます。タブを開く、クリック、入力、コンソールやページ構造の読み取りなど。Web アプリのテストやデバッグに便利です。
+
+```bash
+claude --chrome            # Chrome と接続して起動
+```
+
+```text
+/chrome                    # セッション内から有効化
+> localhost:3000 を開いてテストユーザーで登録し、コンソールエラーがあれば教えて。
+```
+
+ブラウザのログイン状態を共有し、ログイン画面や CAPTCHA では一時停止して、あなたが操作できるようにします。
+
+## どれを選べばいい？
+
+| 状況 | おすすめ |
+| --- | --- |
+| 机での日常的なコーディング | CLI またはエディタ拡張 |
+| 見た目のわかりやすいアプリがいい | デスクトップ |
+| 長いタスク、PC を閉じたい | Web（`--cloud`） |
+| 外出中 | モバイル + Remote Control または Dispatch |
+| チームがチャットでバグを報告 | Slack |
+| Web UI をテストしたい | Chrome |
+
+## 参考資料
+
+- [Use Claude Code everywhere](https://code.claude.com/docs/en/overview#use-claude-code-everywhere)
+- [Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web)
+- [Claude Cowork vs. Code vs. Chat](https://roadmap.sh/claude-code/vs-cowork-vs-chat)

@@ -1,0 +1,7 @@
+{
+  "title": "Tiếng Việt",
+  "description": "Ghi chú Claude Code",
+  "root": true,
+  "icon": "Languages",
+  "pages": ["introduction", "ways-to-use-claude", "using-claude-code", "understand-the-basics"]
+}

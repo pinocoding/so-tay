@@ -1,0 +1,6 @@
+{
+  "title": "Mendix",
+  "description": "Ghi chú học Mendix",
+  "root": true,
+  "pages": ["vi", "en", "ja"]
+}

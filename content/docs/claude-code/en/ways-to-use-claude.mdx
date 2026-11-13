@@ -1,0 +1,169 @@
+---
+title: Ways to use Claude
+description: The surfaces where Claude Code runs, and how to keep working from anywhere.
+icon: MonitorSmartphone
+---
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Claude Code is **one agentic engine** that you can reach from many places. Pick the surface that fits the moment; your project, `CLAUDE.md` and settings stay the same.
+
+![Where Claude Code runs: CLI, Desktop, Editor, Web, Mobile, plus Remote Control, Teleport, Dispatch, Channels, Slack and Chrome](/images/claude-code/surfaces.svg)
+
+## Surfaces
+
+### CLI
+
+The terminal is the original and most flexible way to use Claude Code. Everything else builds on it.
+
+```bash
+cd my-project
+claude                         # interactive session
+claude "explain this project"  # start with a first prompt
+claude -p "list TODO comments" # one-shot, prints the answer and exits
+```
+
+**Use it when:** you live in the terminal, want scripts or automation, or need every feature first.
+
+### Desktop
+
+The **Claude Code Desktop** app gives you a graphical window: visual diffs, several sessions side by side, and no terminal required.
+
+```text
+/desktop    # inside a terminal session: continue this session in the Desktop app
+```
+
+**Use it when:** you prefer clicking over typing, or want to review diffs visually.
+
+### Web
+
+**Claude Code on the web** runs sessions on Anthropic's cloud, not on your computer. It clones your GitHub repository into a cloud environment, so the session keeps running after you close your laptop.
+
+```bash
+# start a cloud session from your terminal (push your commits first)
+git push
+claude --cloud "Add input validation to the signup form"
+```
+
+You can also start one at [claude.ai/code](https://claude.ai/code).
+
+**Use it when:** a task is long, you want several tasks in parallel, or you want to check progress from another device.
+
+### Mobile
+
+There is no separate Claude Code app for phones. The **Claude app** (iOS and Android) opens Claude Code sessions in its **Code** tab. From your phone you can:
+
+- start and follow cloud sessions,
+- drive a session running on your own computer (Remote Control),
+- send a task to Dispatch.
+
+```text
+/mobile    # shows a QR code to install the app
+```
+
+### Editor Extensions
+
+Extensions for **VS Code** (and forks such as Cursor) and **JetBrains IDEs** (IntelliJ IDEA, PyCharm, WebStorm…) put Claude Code in a sidebar, with inline diffs next to your code. Claude also sees your open file, your selection and editor errors.
+
+<Steps>
+<Step>Install "Claude Code" from the VS Code Marketplace or JetBrains Marketplace.</Step>
+<Step>Open your project and click the Claude icon in the sidebar.</Step>
+<Step>Select some code and ask: `Explain this function and suggest a simpler version`.</Step>
+</Steps>
+
+## Work from Anywhere
+
+### Remote Control
+
+Remote Control lets you drive a session that is **running on your own computer** from [claude.ai/code](https://claude.ai/code) or the Claude mobile app. Claude still runs locally, so your files, MCP servers and config are all available.
+
+```bash
+claude remote-control      # start a session that can be controlled remotely
+```
+
+```text
+/remote-control            # make the current session available remotely
+```
+
+**Example:** start a long refactor at your desk, then approve Claude's next step from your phone while you're out.
+
+### Teleport & Handoff
+
+Move work **between surfaces** without losing the conversation.
+
+| Command | Direction |
+| --- | --- |
+| `claude --cloud "task"` | Terminal → new cloud session |
+| `claude --teleport` | Cloud session → your terminal (checks out its branch, loads history) |
+| `/teleport` (or `/tp`) | Same as above, from inside a session |
+| `/desktop` | Terminal → Desktop app |
+
+```bash
+claude --teleport                 # pick a cloud session from a list
+claude --teleport <session-id>    # resume a specific one
+```
+
+<Callout type="warn">
+Teleport needs a clean Git state (it offers to stash changes) and a pushed branch. The terminal gets its own copy: new work there does not appear in the cloud session.
+</Callout>
+
+### Dispatch
+
+**Dispatch** is a persistent conversation you message from your phone. You describe a task; when it is coding work, Dispatch starts a Claude Code session in the Desktop app on your computer and notifies you when it finishes or needs approval.
+
+```text
+You (on phone): "Update the dependencies in my-api and run the tests"
+Dispatch:        starts a Desktop session → runs → "Done, 2 tests fixed. Open PR?"
+```
+
+Requirements: a Pro or Max plan, and your computer must stay on with the Desktop app running.
+
+### Channels
+
+**Channels** push messages and events from outside (Telegram, Discord, iMessage, webhooks) **into a session that is already running**, so Claude can react while you're away. A channel is installed as a plugin (it is an MCP server).
+
+**Example:** a monitoring webhook posts "API error rate high" into your running session; Claude reads the logs and drafts a fix.
+
+## Integrations
+
+### Slack
+
+Mention `@Claude` in a Slack channel with a bug report or request. Claude starts a cloud session, posts progress in the thread and ends with a summary and buttons to view the session or create a pull request.
+
+```text
+@Claude The /orders page shows the wrong total when a coupon is applied. Please fix it in shop-web.
+```
+
+**Claude Tag** is the organization-managed version for Team and Enterprise plans, with a shared identity and admin-controlled access.
+
+### Chrome
+
+The **Claude in Chrome** extension lets Claude Code control your browser: open tabs, click, type, read the console and page structure. Great for testing and debugging web apps.
+
+```bash
+claude --chrome            # start with Chrome connected
+```
+
+```text
+/chrome                    # turn it on from inside a session
+> Open localhost:3000, sign up with a test user and tell me about any console errors.
+```
+
+It shares your browser's sign-ins and pauses on login pages or CAPTCHAs so you can handle them yourself.
+
+## Which one should I pick?
+
+| Situation | Best surface |
+| --- | --- |
+| Daily coding at your desk | CLI or Editor Extension |
+| Prefer a visual app | Desktop |
+| Long task, close the laptop | Web (`--cloud`) |
+| Away from your desk | Mobile + Remote Control or Dispatch |
+| Team reports a bug in chat | Slack |
+| Test a web UI | Chrome |
+
+## References
+
+- [Use Claude Code everywhere](https://code.claude.com/docs/en/overview#use-claude-code-everywhere)
+- [Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web)
+- [Claude Cowork vs. Code vs. Chat](https://roadmap.sh/claude-code/vs-cowork-vs-chat)

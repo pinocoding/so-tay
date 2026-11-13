@@ -1,0 +1,237 @@
+---
+title: Introduction
+description: What Claude Code is, the ideas behind it, and how to get started.
+icon: Rocket
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+## What is Claude Code?
+
+Claude Code is Anthropic's **agentic coding tool**. You describe what you want in plain language, and Claude reads your codebase, edits files, runs commands and checks the result on its own. It started in the terminal and now also runs in editors, a desktop app, the web and on your phone.
+
+The key difference from code-suggestion tools such as **GitHub Copilot** (its as-you-type suggestions) or **Tabnine**: those tools guess and suggest **the next few lines** of code. Claude Code handles **a whole task** from start to finish.
+
+Example: you want to add a "Forgot password" button to the login page.
+
+- **Code-suggestion tool:** you must know which files to change and type each part yourself; the tool suggests a few lines along the way.
+- **Claude Code:** you just say *"Add a Forgot password button to the login page"*. Claude finds the right files, adds the button, creates the reset-password page, then runs it to check for errors.
+
+In practice: open a terminal in your project folder and type:
+
+```bash
+cd my-project     # go to your project folder
+claude            # start Claude Code
+> Add a "Forgot password" button to the login page
+```
+
+When it's done, Claude reports what it did, for example:
+
+```text
+✓ Found the login page: src/pages/login.tsx
+✓ Added the "Forgot password" button
+✓ Created a new page: src/pages/forgot-password.tsx
+✓ Test run: no errors
+```
+
+- Official overview: [code.claude.com/docs/en/overview](https://code.claude.com/docs/en/overview)
+
+## What is Vibe Coding?
+
+**Vibe coding** means building software mostly by describing the result you want ("make a todo app with dark mode") and letting an AI write the code, instead of writing it line by line. The term was coined by Andrej Karpathy.
+
+| Good for | Watch out for |
+| --- | --- |
+| Prototypes, demos, personal tools | Code you never read can hide bugs and security issues |
+| Learning a new framework quickly | Large projects drift without structure |
+| Getting from zero to "it runs" fast | Production code still needs review and tests |
+
+<Callout title="Tip">
+Vibe coding is a starting point. For real projects, combine it with Plan Mode, tests and code review.
+</Callout>
+
+## What is a Coding Agent?
+
+A **coding agent** is an AI that can **do the work for you** (open files, change code, run programs), not just answer questions. It has **tools** (read files, edit files, run shell commands, search the web) and decides by itself which tool to use next until the task is done.
+
+| Chat assistant | Coding agent |
+| --- | --- |
+| You paste code in, it answers | It reads your files itself |
+| You copy the answer back | It edits the files directly |
+| You run the tests | It runs the tests and reacts to failures |
+
+## What is the Agentic Loop?
+
+Every task in Claude Code runs in a loop like this:
+
+**Gather context → plan → act → verify**, repeated until the goal is met.
+
+Think of a **car mechanic**: look at the car → find what's broken → fix it → test drive. If the test drive fails, start looking again.
+
+![Claude works like a car mechanic: look at the car (gather context), find what's broken (plan), fix it (act), test drive (verify); repeat if it's not right yet](/images/claude-code/agentic-loop.svg)
+
+**Real-world example:** you ask Claude *"The Sign up button on my website doesn't work. Please fix it."*
+
+1. **Gather context**: Claude reads the files related to the Sign up button to understand how it works.
+2. **Plan**: Claude finds out why the button doesn't work and decides how to fix it.
+3. **Act**: Claude changes the file.
+4. **Verify**: Claude tries the page. If the button **still** doesn't work, Claude goes back to step 1 and keeps looking. If it **works**, Claude tells you: "Fixed!"
+
+<Callout title="Tip">
+You can interrupt the loop at any time with `Esc` and steer it in a new direction.
+</Callout>
+
+## Setting up Claude Code
+
+<Steps>
+<Step>
+### Install
+
+<Tabs items={['macOS / Linux / WSL', 'Windows (PowerShell)', 'npm (Node.js)']}>
+<Tab value="macOS / Linux / WSL">
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+</Tab>
+<Tab value="Windows (PowerShell)">
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
+</Tab>
+<Tab value="npm (Node.js)">
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+</Tab>
+</Tabs>
+</Step>
+
+<Step>
+### Start in your project
+
+```bash
+cd my-project
+claude
+```
+</Step>
+
+<Step>
+### Log in once
+
+Follow the browser prompt and sign in with your Claude account (Pro, Max, Team, Enterprise) or a Claude Console API key.
+</Step>
+
+<Step>
+### Check the installation
+
+```bash
+claude --version
+claude doctor
+```
+</Step>
+</Steps>
+
+- Docs: [Set up Claude Code](https://code.claude.com/docs/en/setup)
+
+## Subscription
+
+With a **Claude subscription**, Claude Code usage is included in your plan.
+
+| Plan | Who it is for |
+| --- | --- |
+| Pro | Individuals, everyday use |
+| Max | Heavy individual use, higher limits |
+| Team | Small teams, shared admin and billing |
+| Enterprise | Organizations: SSO, audit logs, admin controls |
+
+Check your remaining capacity inside a session with `/usage`.
+
+## API usage
+
+### Principle
+
+Using the API means you don't pay a monthly fee. Instead, you pay for the **tokens** you use.
+
+- **Input tokens:** everything you send to Claude, including your commands, code and the contents of files Claude reads.
+- **Output tokens:** Claude's replies and the actions it produces.
+
+Prices depend on the model, usually per million tokens. Reading many files, running many loops or working on long tasks uses more tokens than asking a single simple question.
+
+### How to connect
+
+To make Claude Code use the API, put your API key in the `ANTHROPIC_API_KEY` environment variable. When this key is set, Claude Code uses it instead of your plan login.
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+claude
+```
+
+<Callout type="warn">
+Never commit your API key to Git. Keep it in an environment variable or a secret manager.
+</Callout>
+
+### Comparison with Free and prepaid plans
+
+| Criteria | Free plan | Monthly plan (Pro, Max) | Prepaid API (buy credits) |
+| --- | --- | --- | --- |
+| Can use Claude Code | No | Yes | Yes |
+| How you pay | Free | Fixed each month | Buy credits upfront; tokens used are deducted |
+| Limits | Very limited | Caps per 5-hour session and per week | No session cap. Limited only by balance and rate limits for your account tier |
+| Cost | None | Predictable | Varies with how much you use |
+| When you hit the limit | Wait | Wait for reset or upgrade | Stops when the balance runs out, unless auto-reload is on |
+| Best for | Trying out chat | Daily use | Automation, system integration, irregular use |
+
+### When to use the API
+
+Use the API when Claude Code runs **without someone sitting and waiting**, meaning it is triggered automatically and nobody types a command and waits for the result. A typical example:
+
+**Automatic code review on every pull request.** Your team uses GitHub. Each time someone opens a pull request, the system automatically:
+
+1. Takes the code that just changed.
+2. Sends it to Claude Code to check.
+3. Posts the results (possible bugs, suggested fixes) on the pull request page.
+
+Nobody clicks anything. When the author comes back, the review is already there. Sample configuration:
+
+```yaml
+# .github/workflows/review.yml
+name: Review pull request
+on: pull_request
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g @anthropic-ai/claude-code
+      - run: claude -p "Review the changes compared to the main branch and list possible bugs"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+- `claude -p` runs Claude Code once and exits. It doesn't open an interface waiting for someone to type.
+- `${{ secrets.ANTHROPIC_API_KEY }}` reads the key from the repository's secrets. The key never appears in the code.
+
+Other cases work the same way: a daily error report from logs, or automatic doc updates when a source file changes.
+
+**For automation, choose the prepaid API.** The system runs continuously, so the balance must always be enough. Pro and Max are for working in person, not for automated runs.
+
+### When **not** to use the API
+
+- You work with Claude Code **regularly every day**. A Pro or Max plan usually makes costs easier to predict.
+- You are just starting out. A subscription is easier to begin with and carries less risk of unexpected charges.
+
+### Notes on using the API
+
+- **There is no default spending cap.** Set a spending limit in the Claude Console before you start.
+- **Always keep a balance.** When credits run out, automated runs fail and nobody notices right away. Turn on auto-reload or a low-balance alert.
+- **Track costs.** Check usage in the Console to see which tasks use the most tokens.
+- **Prices change over time.** See the official pricing at [claude.com/pricing](https://claude.com/pricing).
+
+## References
+
+- [roadmap.sh: Claude Code](https://roadmap.sh/claude-code)
+- [Claude Code overview](https://code.claude.com/docs/en/overview)
+- [Claude Code in Action (course)](https://anthropic.skilljar.com/claude-code-in-action)
+- [Claude Code 101 (course)](https://anthropic.skilljar.com/claude-code-101)

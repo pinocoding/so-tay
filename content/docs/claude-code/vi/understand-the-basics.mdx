@@ -1,0 +1,122 @@
+---
+title: Hiểu các khái niệm cơ bản
+description: Các khái niệm nền tảng của Claude Code, cách phân biệt chúng, chọn model nào và các tình huống sử dụng phổ biến.
+icon: Blocks
+---
+
+## Phân biệt các khái niệm
+
+Đây là những khối xây dựng bạn sẽ gặp lại nhiều lần. Mỗi cái có topic riêng ở phần sau của roadmap.
+
+### CLAUDE.md
+- **Bản chất:** Một file Markdown chứa hướng dẫn riêng cho dự án: công nghệ dùng, lệnh cài đặt, lệnh test, quy ước viết code.
+- **Vị trí:** Thư mục gốc của dự án (`CLAUDE.md`). Có thể đặt thêm một file chung trong `~/.claude/CLAUDE.md` để áp dụng cho mọi dự án.
+- **Mục đích:** Mỗi lần mở phiên mới, Claude bắt đầu với bộ nhớ trống. File này giúp bạn khỏi phải nhắc lại quy ước của dự án mỗi lần.
+
+### Context (ngữ cảnh)
+- **Bản chất:** Toàn bộ những gì Claude đang "nhớ" trong một phiên: hội thoại, các file đã đọc, kết quả lệnh đã chạy.
+- **Vị trí:** Trong bộ nhớ làm việc của Claude trong phiên hiện tại. Dung lượng có giới hạn.
+- **Mục đích:** Claude cần ngữ cảnh để hiểu việc đang làm. Khi ngữ cảnh đầy, Claude dễ quên chi tiết cũ, nên bạn dùng `/compact` (tóm tắt lại) hoặc `/clear` (xóa để bắt đầu lại).
+
+### Models (mô hình)
+- **Bản chất:** Các mô hình AI thực hiện công việc, gồm Opus, Sonnet, Haiku và Fable. Mỗi mô hình khác nhau về trí thông minh, tốc độ và chi phí.
+- **Vị trí:** Chạy trên hạ tầng của Anthropic, không nằm trên máy bạn. Bạn chọn mô hình bằng `/model` hoặc khi khởi động.
+- **Mục đích:** Cho phép chọn đúng mức "thông minh" cho từng việc. Việc khó thì dùng mô hình mạnh, việc đơn giản thì dùng mô hình nhẹ để tiết kiệm.
+
+### Modes (chế độ)
+- **Bản chất:** Mức Claude được tự làm mà không cần hỏi bạn. Ví dụ: chế độ hỏi trước khi sửa, chế độ chỉ lập kế hoạch (Plan), chế độ tự động.
+- **Vị trí:** Thuộc phiên làm việc hiện tại. Bạn đổi bằng `Shift+Tab`.
+- **Mục đích:** Giữ an toàn. Bạn quyết định Claude được tự sửa file hay chạy lệnh tới đâu, nhất là với dự án quan trọng.
+
+### Tools (công cụ)
+- **Bản chất:** Các hành động cụ thể Claude làm được, ví dụ `Read` (đọc file), `Edit` (sửa file), `Bash` (chạy lệnh), `Grep` (tìm trong code), `WebSearch` (tìm trên web).
+- **Vị trí:** Được tích hợp sẵn trong Claude Code. Các lệnh `Bash` và `Edit` chạy trên máy bạn, sau khi bạn cho phép.
+- **Mục đích:** Không có công cụ thì Claude chỉ trả lời bằng chữ. Có công cụ thì Claude mới tự làm việc thật: mở file, sửa code, chạy test.
+
+### Skills (kỹ năng)
+- **Bản chất:** Một thư mục chứa file `SKILL.md`, ghi lại một quy trình lặp lại. Ví dụ: cách viết release notes, cách tạo migration.
+- **Vị trí:** Trong `.claude/skills/` của dự án, hoặc `~/.claude/skills/` để dùng chung cho mọi dự án.
+- **Mục đích:** Đóng gói kinh nghiệm để dùng lại. Skill chỉ được nạp vào khi việc đó cần, nên không làm đầy ngữ cảnh.
+
+### MCP (Model Context Protocol)
+- **Bản chất:** Một chuẩn kết nối mở, giúp Claude nối với dịch vụ và dữ liệu bên ngoài như GitHub, database, Slack.
+- **Vị trí:** Cấu hình trong file `.mcp.json` của dự án, hoặc thêm bằng lệnh `claude mcp add`. Bạn quản lý kết nối bằng `/mcp`.
+- **Mục đích:** Claude chỉ biết những gì nằm trong dự án. MCP mở rộng khả năng ra thế giới bên ngoài, ví dụ đọc issue trên GitHub hoặc truy vấn database.
+
+### Plugins (gói mở rộng)
+- **Bản chất:** Một gói cài sẵn, bên trong có thể gồm skill, lệnh, subagent, hook và MCP server.
+- **Vị trí:** Cài từ marketplace bằng `/plugin`. Plugin được lưu trong thư mục cấu hình của Claude trên máy bạn.
+- **Mục đích:** Chia sẻ và cài nhanh một bộ cấu hình hoàn chỉnh. Cả nhóm có thể dùng cùng một bộ quy chuẩn mà không phải cấu hình từng cái.
+
+### Hooks (móc sự kiện)
+- **Bản chất:** Lệnh shell tự chạy khi có một sự kiện xảy ra, ví dụ ngay sau khi Claude sửa một file.
+- **Vị trí:** Khai báo trong file `.claude/settings.json`, hoặc tạo qua menu `/hooks`.
+- **Mục đích:** Bảo đảm một việc luôn xảy ra, ví dụ tự format code sau mỗi lần sửa. Khác với `CLAUDE.md` là hướng dẫn "mềm" mà Claude có thể quên, hook chạy theo cơ chế, không phụ thuộc Claude nhớ.
+
+### Subagents (agent phụ)
+- **Bản chất:** Một AI phụ được giao một việc riêng, ví dụ tìm kiếm trong code hoặc viết test. Subagent có ngữ cảnh riêng.
+- **Vị trí:** Mỗi subagent là một file Markdown trong thư mục `.claude/agents/`.
+- **Mục đích:** Việc tìm kiếm và đọc nhiều file sẽ làm đầy cuộc trò chuyện chính. Giao cho subagent thì cuộc trò chuyện chính vẫn gọn, và kết quả trả về là phần tóm tắt.
+
+Một file `CLAUDE.md` tối thiểu:
+
+```markdown
+# Ghi chú dự án cho Claude
+
+- Stack: Next.js 16, TypeScript, Tailwind
+- Cài đặt: `npm install`
+- Test: `npm test` (phải pass trước khi kết thúc)
+- Style: dùng named export, không dùng default export
+```
+
+### Phân biệt các cặp dễ nhầm
+
+| Cặp | Khác nhau ở đâu | Ví dụ đời thường |
+| --- | --- | --- |
+| **CLAUDE.md – Skills** | Claude đọc CLAUDE.md **mỗi lần** mở phiên. Skill chỉ được nạp **khi cần** đúng việc đó. | CLAUDE.md giống nội quy dán ở cửa, ai vào cũng đọc. Skill giống cuốn hướng dẫn cất trong tủ, cần mới lấy ra. |
+| **Context – Modes** | Context là những gì Claude đang **nhớ**. Mode là mức Claude được **tự làm** mà không cần hỏi bạn. | Context là trí nhớ của nhân viên. Mode là quyền hạn bạn giao cho người đó. |
+| **Models – Tools** | Model là **bộ não** suy nghĩ. Tools là **đôi tay** làm việc: đọc file, sửa file, chạy lệnh. | Bác sĩ là model, dụng cụ y tế là tools. |
+| **MCP – Plugins** | MCP là **cổng kết nối** tới dịch vụ bên ngoài như GitHub hay database. Plugin là **gói cài sẵn**, bên trong có thể có skill, hook, MCP… | MCP giống ổ cắm. Plugin giống bộ đồ nghề trọn gói. |
+| **Hooks – Subagents** | Hook là **đoạn script tự chạy** mỗi khi có sự kiện, lần nào cũng chạy và không cần AI suy nghĩ. Subagent là **một AI phụ** được giao một việc riêng và có trí nhớ riêng. | Hook giống chuông báo tự động. Subagent giống đồng nghiệp được giao việc. |
+
+## Khi nào dùng model nào?
+
+| Model | Điểm mạnh | Dùng cho |
+| --- | --- | --- |
+| **Fable** | Mạnh nhất, suy luận sâu nhất, đắt nhất | Truy nguyên nhân lỗi khó, quyết định kiến trúc, việc agentic dài |
+| **Opus** | Suy luận tốt cho việc phức tạp | Refactor lớn, bug khó, lập kế hoạch |
+| **Sonnet** | Cân bằng chất lượng, tốc độ, chi phí | Phát triển tính năng hằng ngày |
+| **Haiku** | Nhanh và rẻ nhất | Sửa nhỏ, câu hỏi nhanh, subagent nhẹ |
+
+```text
+/model           # mở danh sách chọn model
+/model sonnet    # đổi trực tiếp
+/model fable     # model mạnh nhất (không phải mặc định ở gói nào)
+```
+
+<Callout>
+Bắt đầu với model mặc định. Chuyển lên model mạnh hơn khi Claude gặp khó; chuyển xuống model nhẹ hơn cho việc đơn giản hoặc lặp lại để tiết kiệm hạn mức.
+</Callout>
+
+## Các tình huống sử dụng phổ biến
+
+| Tình huống | Prompt mẫu |
+| --- | --- |
+| Hiểu codebase | `Giải thích cấu trúc thư mục và luồng xử lý một request trong app` |
+| Sửa bug | `npm test lỗi ở auth.spec.ts. Tìm nguyên nhân và sửa` |
+| Viết test | `Thêm unit test cho utils/date.ts, bao gồm các trường hợp biên` |
+| Refactor | `Chuyển các class component trong src/legacy sang hooks` |
+| Nâng cấp thư viện | `Nâng React lên bản mới nhất và sửa các thay đổi không tương thích` |
+| Làm việc với Git | `Viết commit message cho các thay đổi đã stage` |
+| Tài liệu | `Viết phần README hướng dẫn chạy dự án trên máy` |
+| DevOps | `Tạo workflow GitHub Actions chạy lint và test cho mỗi PR` |
+
+## Tài liệu tham khảo
+
+- [How Claude Code works](https://code.claude.com/docs/en/how-claude-code-works)
+- [Quản lý bộ nhớ của Claude (CLAUDE.md)](https://code.claude.com/docs/en/memory)
+- [Skills](https://code.claude.com/docs/en/skills)
+- [Chế độ quyền (Modes)](https://code.claude.com/docs/en/permission-modes)
+- [MCP](https://code.claude.com/docs/en/mcp)
+- [Subagents](https://code.claude.com/docs/en/sub-agents)
+- [Chọn model phù hợp](https://platform.claude.com/docs/en/about-claude/models/choosing-a-model)

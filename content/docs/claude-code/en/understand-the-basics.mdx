@@ -1,0 +1,122 @@
+---
+title: Understand the Basics
+description: The core concepts of Claude Code, how they differ, which model to use and common use cases.
+icon: Blocks
+---
+
+## Understand the Differences
+
+These are the building blocks you will meet again and again. Each one gets its own topic later in the roadmap.
+
+### CLAUDE.md
+- **Essence:** A Markdown file with instructions for one project: the tech stack, install commands, test commands and coding conventions.
+- **Location:** The project root (`CLAUDE.md`). You can also put a shared file at `~/.claude/CLAUDE.md` to apply it to every project.
+- **Purpose:** Every new session starts with an empty memory. This file means you don't have to repeat the project's rules each time.
+
+### Context
+- **Essence:** Everything Claude currently "remembers" in one session: the conversation, the files it has read and the results of commands it has run.
+- **Location:** In Claude's working memory for the current session. Its size is limited.
+- **Purpose:** Claude needs context to understand the task. When the context fills up, Claude starts to forget older details, so use `/compact` (summarize) or `/clear` (start over).
+
+### Models
+- **Essence:** The AI models that do the work: Opus, Sonnet, Haiku and Fable. They differ in intelligence, speed and cost.
+- **Location:** They run on Anthropic's infrastructure, not on your computer. Choose one with `/model` or at startup.
+- **Purpose:** Lets you pick the right level of "intelligence" for each task. Use a strong model for hard tasks and a lighter one for simple or repetitive tasks to save usage.
+
+### Modes
+- **Essence:** How much Claude may do without asking you. For example: ask before editing, plan only (Plan), or automatic.
+- **Location:** Part of the current session. Switch with `Shift+Tab`.
+- **Purpose:** Safety. You decide how far Claude may edit files or run commands, especially on important projects.
+
+### Tools
+- **Essence:** Specific actions Claude can take, for example `Read` (read files), `Edit` (change files), `Bash` (run commands), `Grep` (search code) and `WebSearch` (search the web).
+- **Location:** Built into Claude Code. `Bash` and `Edit` run on your computer, after you give permission.
+- **Purpose:** Without tools, Claude can only reply with text. With tools, it can do real work: open files, change code, run tests.
+
+### Skills
+- **Essence:** A folder containing a `SKILL.md` file that records a repeatable workflow, for example how to write release notes or create a migration.
+- **Location:** In the project's `.claude/skills/`, or in `~/.claude/skills/` to share across projects.
+- **Purpose:** Package know-how for reuse. A skill is loaded only when the task needs it, so it doesn't fill up the context.
+
+### MCP (Model Context Protocol)
+- **Essence:** An open standard that connects Claude to outside services and data such as GitHub, databases and Slack.
+- **Location:** Configured in the project's `.mcp.json`, or added with `claude mcp add`. Manage connections with `/mcp`.
+- **Purpose:** Claude only knows what is in the project. MCP extends it to the outside world, for example reading GitHub issues or querying a database.
+
+### Plugins
+- **Essence:** A ready-made package that can contain skills, commands, subagents, hooks and MCP servers.
+- **Location:** Install from a marketplace with `/plugin`. Plugins are stored in Claude's configuration folder on your computer.
+- **Purpose:** Share and install a complete setup quickly. A whole team can use the same standards without configuring each piece.
+
+### Hooks
+- **Essence:** Shell commands that run automatically when an event happens, for example right after Claude edits a file.
+- **Location:** Declared in `.claude/settings.json`, or created through the `/hooks` menu.
+- **Purpose:** Guarantee that something always happens, for example auto-formatting code after every edit. Unlike `CLAUDE.md`, a "soft" instruction Claude may forget, a hook runs mechanically and does not depend on Claude remembering.
+
+### Subagents
+- **Essence:** A helper AI given a separate task, for example searching code or writing tests. It has its own context.
+- **Location:** Each subagent is a Markdown file in `.claude/agents/`.
+- **Purpose:** Searching and reading many files would fill the main conversation. Handing that work to a subagent keeps the main conversation lean, and only a summary comes back.
+
+A minimal `CLAUDE.md`:
+
+```markdown
+# Project notes for Claude
+
+- Stack: Next.js 16, TypeScript, Tailwind
+- Install: `npm install`
+- Test: `npm test` (must pass before you finish)
+- Style: use named exports; no default exports
+```
+
+### Pairs that are easy to mix up
+
+| Pair | The difference | Everyday example |
+| --- | --- | --- |
+| **CLAUDE.md – Skills** | Claude reads CLAUDE.md **every time** a session starts. A skill is loaded **only when** that task comes up. | CLAUDE.md is like the rules posted on the office door: everyone reads them. A skill is like a manual in the cupboard: you take it out when you need it. |
+| **Context – Modes** | Context is what Claude currently **remembers**. A mode is how much Claude may **do on its own** without asking you. | Context is an employee's memory. A mode is the authority you give that employee. |
+| **Models – Tools** | The model is the **brain** that thinks. Tools are the **hands** that do the work: read files, edit files, run commands. | The doctor is the model; the medical instruments are the tools. |
+| **MCP – Plugins** | MCP is a **connector** to outside services such as GitHub or a database. A plugin is a **ready-made package** that can contain skills, hooks, MCP… | MCP is like a power socket. A plugin is like a complete toolkit. |
+| **Hooks – Subagents** | A hook is a **script that runs automatically** on an event, every time, with no AI thinking involved. A subagent is **a helper AI** given its own task and its own memory. | A hook is like an automatic alarm. A subagent is like a colleague you hand a job to. |
+
+## When to use what model?
+
+| Model | Strength | Use it for |
+| --- | --- | --- |
+| **Fable** | Most capable, deepest reasoning, highest cost | Hard root-cause investigations, architecture decisions, long agentic runs |
+| **Opus** | Strong reasoning on complex work | Big refactors, tricky bugs, planning |
+| **Sonnet** | Balance of quality, speed and cost | Everyday feature work |
+| **Haiku** | Fastest and cheapest | Small edits, quick questions, lightweight subagents |
+
+```text
+/model           # open the model picker
+/model sonnet    # switch directly
+/model fable     # most capable model (not the default on any plan)
+```
+
+<Callout>
+Start with the default model. Move up when Claude struggles; move down for simple or repetitive tasks to save usage.
+</Callout>
+
+## Common Usecases
+
+| Use case | Example prompt |
+| --- | --- |
+| Understand a codebase | `Explain the folder structure and how a request flows through the app` |
+| Fix bugs | `npm test fails in auth.spec.ts. Find the cause and fix it` |
+| Write tests | `Add unit tests for utils/date.ts, cover edge cases` |
+| Refactor | `Convert the class components in src/legacy to hooks` |
+| Upgrade dependencies | `Upgrade React to the latest version and fix breaking changes` |
+| Git work | `Write a commit message for my staged changes` |
+| Docs | `Write a README section explaining how to run the project locally` |
+| DevOps | `Create a GitHub Actions workflow that runs lint and tests on every PR` |
+
+## References
+
+- [How Claude Code works](https://code.claude.com/docs/en/how-claude-code-works)
+- [Manage Claude's memory (CLAUDE.md)](https://code.claude.com/docs/en/memory)
+- [Skills](https://code.claude.com/docs/en/skills)
+- [Permission modes](https://code.claude.com/docs/en/permission-modes)
+- [MCP](https://code.claude.com/docs/en/mcp)
+- [Subagents](https://code.claude.com/docs/en/sub-agents)
+- [Choosing the right model](https://platform.claude.com/docs/en/about-claude/models/choosing-a-model)

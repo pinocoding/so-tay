@@ -1,0 +1,7 @@
+{
+  "title": "日本語",
+  "description": "Claude Code ノート",
+  "root": true,
+  "icon": "Languages",
+  "pages": ["introduction", "ways-to-use-claude", "using-claude-code", "understand-the-basics"]
+}

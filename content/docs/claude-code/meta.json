@@ -1,0 +1,6 @@
+{
+  "title": "Claude Code",
+  "description": "Ghi chú học Claude Code",
+  "root": true,
+  "pages": ["vi", "en", "ja"]
+}

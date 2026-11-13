@@ -1,0 +1,216 @@
+---
+title: Sử dụng Claude Code
+description: Bảng tra lệnh — phím tắt, tiền tố, cờ CLI, slash command, sự kiện hook và chế độ.
+icon: Terminal
+---
+
+Claude Code có thể sửa file và chạy lệnh, nên dùng tốt nghĩa là **kiểm soát được**: biết cách điều hướng, dừng, hoàn tác và giới hạn những gì nó làm. Trang này là bảng tra nhanh; các topic sau sẽ đi sâu hơn.
+
+## Phím tắt & Tiền tố
+
+### Phím tắt
+
+| Phím | Tác dụng | Khi nào dùng |
+| --- | --- | --- |
+| `Esc` | Dừng bước hiện tại của Claude (hoặc đóng menu) mà không mất ngữ cảnh | Claude đang đi sai hướng |
+| `Esc` `Esc` | Mở menu **rewind** để quay về prompt trước đó | Hoàn tác một lượt hỏng (hội thoại, code, hoặc cả hai) |
+| `Ctrl+C` | Hủy nhập liệu hoặc thao tác hiện tại; nhấn hai lần để thoát | Dừng hẳn |
+| `Ctrl+R` | Tìm trong lịch sử prompt | Dùng lại prompt dài |
+| `Ctrl+O` | Bật/tắt transcript chi tiết (mọi lần gọi công cụ) | Xem Claude thực sự đã làm gì |
+| `Ctrl+B` | Đưa lệnh hoặc agent đang chạy xuống nền | Build lâu, dev server (tmux: nhấn hai lần) |
+| `Ctrl+G` | Mở prompt trong trình soạn thảo | Viết hoặc sửa prompt dài, kế hoạch |
+| `Shift+Tab` | Chuyển vòng các chế độ quyền | Sang Plan hoặc Auto mode |
+
+![Shift+Tab chuyển vòng giữa Plan, Manual, Accept edits và Auto](/images/claude-code/permission-modes.svg)
+
+### Tiền tố
+
+| Tiền tố | Tên | Ví dụ |
+| --- | --- | --- |
+| `/` | Slash command | `/help` |
+| `@` | Nhắc tới đường dẫn file | `Giải thích @src/auth/login.ts` |
+| `!` | Bash mode: tự chạy lệnh shell, kết quả được thêm vào ngữ cảnh | `! git status` |
+| `\` + `Enter` | Nhập nhiều dòng: viết tiếp ở dòng sau | xem bên dưới |
+
+```text
+> Refactor @src/api/user.ts: \
+  1. tách thành các hàm nhỏ \
+  2. thêm comment JSDoc \
+  3. giữ nguyên API công khai
+```
+
+<Callout title="Mẹo">
+`! npm test` chạy lệnh trực tiếp, không qua model, nên chạy ngay và không tốn token để suy nghĩ. Claude vẫn thấy kết quả.
+</Callout>
+
+## Lệnh & cờ của claude
+
+| Lệnh | Ý nghĩa |
+| --- | --- |
+| `claude` | Mở phiên tương tác trong thư mục hiện tại |
+| `claude "query"` | Mở phiên kèm prompt đầu tiên |
+| `claude -p "query"` | **Print mode**: chạy một lần, in kết quả, thoát (dùng cho script) |
+| `claude -c` | **Tiếp tục** hội thoại gần nhất trong thư mục này |
+| `claude -r` | **Resume**: chọn một phiên cũ (hoặc truyền ID) |
+| `claude --add-dir ../lib` | Cho Claude truy cập thêm thư mục khác |
+| `claude --cloud "task"` | Chạy việc trong một phiên cloud mới |
+| `claude --teleport` | Kéo một phiên cloud về terminal này |
+| `claude --bare -p "..."` | Khởi động tối giản cho script: bỏ qua hook, skill, plugin, MCP, CLAUDE.md |
+| `claude --permission-mode plan` | Bắt đầu ở một chế độ cụ thể (`default`, `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions`) |
+
+Ví dụ:
+
+```bash
+# Hỏi về repo rồi thoát
+claude -p "File nào xử lý xác thực?"
+
+# Đưa dữ liệu vào qua pipe, nhận JSON
+cat error.log | claude -p "Tóm tắt 3 lỗi xuất hiện nhiều nhất" --output-format json
+
+# Làm việc với app và thư viện dùng chung cùng lúc
+claude --add-dir ../shared-ui
+
+# Sửa lint trong CI, không hỏi khi sửa file
+claude -p "Sửa tất cả lỗi ESLint" --permission-mode acceptEdits
+```
+
+## Lệnh quản lý phiên
+
+| Lệnh | Tác dụng |
+| --- | --- |
+| `/help` | Danh sách lệnh và phím tắt |
+| `/clear` | Bắt đầu lại: xóa hội thoại (dùng giữa các việc không liên quan) |
+| `/exit` | Thoát phiên (mở lại sau bằng `claude -c`) |
+| `/status` | Phiên bản, model, tài khoản, kết nối |
+| `/usage` | Hạn mức còn lại của gói |
+| `/goal` | Đặt điều kiện hoàn thành; Claude làm tiếp cho tới khi đạt |
+| `/export` | Lưu hội thoại ra file hoặc clipboard |
+| `/rewind` | Quay về một checkpoint (hội thoại, code, hoặc cả hai) |
+| `/doctor` | Chẩn đoán lỗi cài đặt |
+| `/plan` | Vào Plan Mode |
+| `/schedule` | Tạo tác vụ cloud chạy theo lịch |
+| `/desktop` | Tiếp tục phiên này trên app Desktop |
+| `/code-review` | Review diff, branch hoặc PR |
+| `/ultrareview` | Review sâu bằng nhiều agent trên cloud |
+| `/remote-control` | Cho phép điều khiển phiên này từ web/điện thoại |
+
+```text
+/goal npm test kết thúc với mã 0
+/schedule mỗi ngày làm việc lúc 9 giờ sáng, review các PR đang mở trong my-api
+/code-review 128          # review pull request #128
+```
+
+## Ngữ cảnh & Bộ nhớ
+
+| Lệnh | Tác dụng |
+| --- | --- |
+| `/context` | Xem cái gì đang chiếm cửa sổ ngữ cảnh |
+| `/compact` | Tóm tắt hội thoại để giải phóng chỗ mà vẫn giữ ý chính |
+| `/memory` | Sửa các file bộ nhớ `CLAUDE.md` |
+| `/init` | Quét dự án và tạo `CLAUDE.md` ban đầu |
+
+```text
+/init
+/compact giữ lại các quyết định về schema database
+```
+
+<Callout type="warn">
+`/clear` quên toàn bộ hội thoại; `/compact` giữ lại bản tóm tắt. Dùng `/clear` khi chuyển sang việc không liên quan.
+</Callout>
+
+## Cấu hình
+
+| Lệnh | Tác dụng |
+| --- | --- |
+| `/config` | Mở cài đặt (theme, model mặc định, editor…) |
+| `/permissions` | Cho phép hoặc chặn công cụ, lệnh |
+| `/model` | Đổi model |
+| `/agents` | Quản lý subagent |
+| `/mcp` | Quản lý kết nối MCP server |
+| `/hooks` | Xem các hook đã cấu hình |
+
+Luật quyền nằm trong `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(npm test)", "Bash(npm run lint)"],
+    "deny": ["Read(./.env)", "Bash(rm -rf:*)"]
+  }
+}
+```
+
+## Hooks
+
+Hook tự chạy lệnh **của bạn** vào những thời điểm cố định. Cấu hình trong `.claude/settings.json`.
+
+| Sự kiện | Xảy ra khi | Cách dùng thường gặp |
+| --- | --- | --- |
+| `SessionStart` | Phiên bắt đầu | Nạp thông tin dự án vào ngữ cảnh |
+| `SessionEnd` | Phiên kết thúc | Dọn dẹp, ghi log |
+| `UserPromptSubmit` | Bạn nhấn Enter, trước khi model nhận | Thêm ngữ cảnh, chặn thông tin bí mật |
+| `PreToolUse` | Trước khi công cụ chạy (có thể chặn) | Ngăn lệnh nguy hiểm |
+| `PostToolUse` | Sau khi công cụ chạy xong | Format hoặc lint file vừa sửa |
+| `PermissionRequest` | Claude sắp hỏi bạn xin quyền | Tự cho phép hoặc từ chối |
+| `Stop` | Claude trả lời xong | Báo cho bạn, kiểm tra lần cuối |
+| `SubagentStop` | Một subagent làm xong | Kiểm tra kết quả của nó |
+
+Ví dụ: format mọi file Claude sửa.
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write" }]
+      }
+    ]
+  }
+}
+```
+
+Hook nhận thông tin về lần gọi công cụ dưới dạng JSON qua standard input; ở đây `jq` lấy ra đường dẫn file vừa sửa.
+
+## Chế độ (Modes)
+
+### Plan
+
+**Plan Mode** chỉ đọc: Claude tìm hiểu code và viết kế hoạch, nhưng không sửa gì cho tới khi bạn duyệt.
+
+```text
+Shift+Tab (tới khi thấy "plan mode on")    hoặc    /plan
+> Lập kế hoạch thêm dark mode cho trang cài đặt.
+```
+
+Xem lại kế hoạch (nhấn `Ctrl+G` để sửa), rồi duyệt để Claude bắt đầu làm.
+
+<Callout title="Mẹo">
+Dùng Plan Mode cho mọi việc đụng tới nhiều file. Năm phút lập kế hoạch tiết kiệm cả giờ hoàn tác.
+</Callout>
+
+### Auto
+
+**Auto mode** bỏ việc hỏi từng thao tác: một model phân loại riêng kiểm tra mỗi hành động và chặn những gì vượt ngoài yêu cầu của bạn hoặc có vẻ rủi ro. Các luật "ask" bạn đặt rõ vẫn sẽ hỏi.
+
+```bash
+claude --permission-mode auto
+```
+
+Nó giảm bị ngắt quãng, nhưng không đảm bảo an toàn tuyệt đối. Hãy tiếp tục dùng Git, test và luật chặn.
+
+## Thói quen tốt
+
+1. **Bắt đầu bằng Plan Mode** với thay đổi lớn.
+2. **Commit trước** khi để Claude sửa nhiều, để `git diff` hiện đủ mọi thay đổi.
+3. **`/clear` giữa các việc** để ngữ cảnh gọn, nhanh và rẻ.
+4. **Cho Claude cách kiểm chứng**: "…và chạy `npm test` cho tới khi pass."
+5. **Ghi hướng dẫn lặp lại vào `CLAUDE.md`** thay vì gõ lại mỗi lần.
+
+## Tài liệu tham khảo
+
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices)
+- [CLI reference](https://code.claude.com/docs/en/cli-reference)
+- [Interactive mode (phím tắt)](https://code.claude.com/docs/en/interactive-mode)
+- [Hooks](https://code.claude.com/docs/en/hooks)
+- [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices)

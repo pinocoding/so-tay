@@ -1,0 +1,216 @@
+---
+title: Claude Code を使う
+description: コマンド早見表 — ショートカット、プレフィックス、CLI フラグ、スラッシュコマンド、フックイベント、モード。
+icon: Terminal
+---
+
+Claude Code はファイルを編集しコマンドを実行できるため、上手に使うコツは **コントロール** です。どう導き、止め、元に戻し、制限するかを知っておきましょう。このページは早見表で、詳しくは後のトピックで扱います。
+
+## ショートカットとプレフィックス
+
+### キーボードショートカット
+
+| キー | 動作 | 使いどころ |
+| --- | --- | --- |
+| `Esc` | コンテキストを保ったまま Claude の現在のステップを止める（メニューを閉じる） | Claude が違う方向に進んでいるとき |
+| `Esc` `Esc` | **巻き戻し** メニューを開き、以前のプロンプトに戻る | 失敗したターンを取り消す（会話、コード、または両方） |
+| `Ctrl+C` | 現在の入力や操作をキャンセル。2 回押すと終了 | 強制停止 |
+| `Ctrl+R` | プロンプト履歴を検索 | 長いプロンプトを再利用 |
+| `Ctrl+O` | 詳細なトランスクリプト（全ツール呼び出し）の表示切り替え | Claude が実際に何をしたか確認 |
+| `Ctrl+B` | 実行中のコマンドやエージェントをバックグラウンドへ | 長いビルド、開発サーバー（tmux では 2 回押す） |
+| `Ctrl+G` | プロンプトをテキストエディタで開く | 長いプロンプトや計画を書く・直す |
+| `Shift+Tab` | 権限モードを切り替える | Plan モードや Auto モードへ |
+
+![Shift+Tab で Plan、Manual、Accept edits、Auto を切り替える](/images/claude-code/permission-modes.svg)
+
+### プレフィックス
+
+| プレフィックス | 名前 | 例 |
+| --- | --- | --- |
+| `/` | スラッシュコマンド | `/help` |
+| `@` | ファイルパスのメンション | `@src/auth/login.ts を説明して` |
+| `!` | Bash モード：自分でシェルコマンドを実行し、出力をコンテキストに追加 | `! git status` |
+| `\` + `Enter` | 複数行入力：次の行に続ける | 下の例を参照 |
+
+```text
+> @src/api/user.ts をリファクタリングして: \
+  1. 小さな関数に分ける \
+  2. JSDoc コメントを追加する \
+  3. 公開 API は変えない
+```
+
+<Callout title="ヒント">
+`! npm test` はモデルを介さずに直接実行されるので、すぐに動き、判断のためのトークンも使いません。出力は Claude にも見えます。
+</Callout>
+
+## claude コマンドとフラグ
+
+| コマンド | 意味 |
+| --- | --- |
+| `claude` | 現在のフォルダで対話セッションを開始 |
+| `claude "query"` | 最初のプロンプト付きでセッションを開始 |
+| `claude -p "query"` | **プリントモード**：1 回実行し、結果を出力して終了（スクリプト向け） |
+| `claude -c` | このフォルダの直近の会話を **続ける** |
+| `claude -r` | **再開**：過去のセッションを選ぶ（または ID を指定） |
+| `claude --add-dir ../lib` | 別のフォルダにもアクセスを許可 |
+| `claude --cloud "task"` | 新しいクラウドセッションでタスクを実行 |
+| `claude --teleport` | クラウドセッションをこのターミナルに取り込む |
+| `claude --bare -p "..."` | スクリプト向けの最小起動：フック、スキル、プラグイン、MCP、CLAUDE.md を読み込まない |
+| `claude --permission-mode plan` | 特定のモードで開始（`default`、`acceptEdits`、`plan`、`auto`、`dontAsk`、`bypassPermissions`） |
+
+例：
+
+```bash
+# リポジトリについて質問して終了
+claude -p "認証を担当しているファイルはどれ？"
+
+# データをパイプで渡し、JSON で受け取る
+cat error.log | claude -p "上位 3 件のエラーを要約して" --output-format json
+
+# アプリと共有ライブラリを同時に扱う
+claude --add-dir ../shared-ui
+
+# CI での lint 修正。ファイル編集の確認を出さない
+claude -p "ESLint のエラーをすべて修正して" --permission-mode acceptEdits
+```
+
+## セッションコマンド
+
+| コマンド | 動作 |
+| --- | --- |
+| `/help` | コマンドとショートカットの一覧 |
+| `/clear` | 会話を消して新しく始める（無関係なタスクの間に） |
+| `/exit` | セッションを終了（後で `claude -c` で再開） |
+| `/status` | バージョン、モデル、アカウント、接続状態 |
+| `/usage` | プランの残り利用量 |
+| `/goal` | 完了条件を設定。満たすまで Claude が作業を続ける |
+| `/export` | 会話をファイルやクリップボードに保存 |
+| `/rewind` | チェックポイントに戻る（会話、コード、または両方） |
+| `/doctor` | インストールの問題を診断 |
+| `/plan` | Plan モードに入る |
+| `/schedule` | スケジュール実行するクラウドタスクを作成 |
+| `/desktop` | このセッションをデスクトップアプリで続ける |
+| `/code-review` | 差分、ブランチ、PR をレビュー |
+| `/ultrareview` | クラウドで複数エージェントによる詳細レビュー |
+| `/remote-control` | このセッションを Web やスマホから操作可能にする |
+
+```text
+/goal npm test が終了コード 0 で終わる
+/schedule 平日の毎朝 9 時に my-api のオープン PR をレビュー
+/code-review 128          # プルリクエスト #128 をレビュー
+```
+
+## コンテキストとメモリ
+
+| コマンド | 動作 |
+| --- | --- |
+| `/context` | コンテキストウィンドウを何が占めているか表示 |
+| `/compact` | 会話を要約して空きを作り、要点は残す |
+| `/memory` | `CLAUDE.md` のメモリファイルを編集 |
+| `/init` | プロジェクトを調べて最初の `CLAUDE.md` を作成 |
+
+```text
+/init
+/compact データベーススキーマに関する決定事項は残して
+```
+
+<Callout type="warn">
+`/clear` は会話の内容をすべて忘れ、`/compact` は要約を残します。無関係なタスクに切り替えるときは `/clear` を使いましょう。
+</Callout>
+
+## 設定
+
+| コマンド | 動作 |
+| --- | --- |
+| `/config` | 設定を開く（テーマ、既定モデル、エディタなど） |
+| `/permissions` | ツールやコマンドを許可・拒否 |
+| `/model` | モデルを切り替え |
+| `/agents` | サブエージェントを管理 |
+| `/mcp` | MCP サーバーの接続を管理 |
+| `/hooks` | 設定済みのフックを表示 |
+
+権限ルールは `.claude/settings.json` に書きます：
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(npm test)", "Bash(npm run lint)"],
+    "deny": ["Read(./.env)", "Bash(rm -rf:*)"]
+  }
+}
+```
+
+## フック
+
+フックは決まったタイミングで **あなたの** コマンドを自動実行します。`.claude/settings.json` で設定します。
+
+| イベント | 発生タイミング | 典型的な使い方 |
+| --- | --- | --- |
+| `SessionStart` | セッション開始時 | プロジェクト情報をコンテキストに読み込む |
+| `SessionEnd` | セッション終了時 | 後片付け、ログ書き出し |
+| `UserPromptSubmit` | Enter を押した直後、モデルに届く前 | 情報を追加、秘密情報をブロック |
+| `PreToolUse` | ツール実行前（ブロック可能） | 危険なコマンドを止める |
+| `PostToolUse` | ツール実行後 | 編集したファイルを整形・lint |
+| `PermissionRequest` | Claude が許可を求めようとするとき | 自動で許可または拒否 |
+| `Stop` | Claude が返答を終えたとき | 通知、最終チェック |
+| `SubagentStop` | サブエージェントが終了したとき | 結果をチェック |
+
+例：Claude が編集したファイルを毎回整形する。
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write" }]
+      }
+    ]
+  }
+}
+```
+
+フックは標準入力から JSON でツール呼び出しの詳細を受け取ります。ここでは `jq` で編集されたファイルのパスを取り出しています。
+
+## モード
+
+### Plan
+
+**Plan モード** は読み取り専用です。Claude はコードを調べて計画を書きますが、あなたが承認するまで何も編集しません。
+
+```text
+Shift+Tab（「plan mode on」になるまで）    または    /plan
+> 設定ページにダークモードを追加する計画を立てて。
+```
+
+計画を確認し（`Ctrl+G` で編集できます）、承認すると Claude が実装を始めます。
+
+<Callout title="ヒント">
+多くのファイルに触れる作業には Plan モードを使いましょう。5 分の計画が 1 時間のやり直しを防ぎます。
+</Callout>
+
+### Auto
+
+**Auto モード** では操作ごとの確認がなくなります。別の分類モデルが各操作をチェックし、依頼の範囲を超えるものや危険に見えるものをブロックします。明示的な「ask」ルールは引き続き確認を求めます。
+
+```bash
+claude --permission-mode auto
+```
+
+中断は減りますが、安全を保証するものではありません。Git、テスト、拒否ルールは引き続き使いましょう。
+
+## よい習慣
+
+1. 大きな変更は **Plan モードから** 始める。
+2. Claude に大きな編集をさせる **前にコミット** し、`git diff` ですべて見えるようにする。
+3. タスクの合間に **`/clear`** して、コンテキストを小さく、速く、安く保つ。
+4. **検証方法を伝える**：「…そして `npm test` が通るまで続けて」
+5. **繰り返す指示は `CLAUDE.md` に** 書き、毎回入力しない。
+
+## 参考資料
+
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices)
+- [CLI reference](https://code.claude.com/docs/en/cli-reference)
+- [Interactive mode（ショートカット）](https://code.claude.com/docs/en/interactive-mode)
+- [Hooks](https://code.claude.com/docs/en/hooks)
+- [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices)

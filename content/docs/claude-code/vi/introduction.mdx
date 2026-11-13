@@ -1,0 +1,237 @@
+---
+title: Giới thiệu
+description: Claude Code là gì, các ý tưởng nền tảng và cách bắt đầu.
+icon: Rocket
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+## Claude Code là gì?
+
+Claude Code là **công cụ lập trình dạng agent** của Anthropic. Bạn mô tả việc cần làm bằng ngôn ngữ tự nhiên, Claude sẽ tự đọc codebase, sửa file, chạy lệnh và kiểm tra kết quả. Ban đầu nó chạy trong terminal, giờ đã có trên editor, ứng dụng desktop, web và điện thoại.
+
+Điểm khác biệt lớn so với các công cụ gợi ý code như **GitHub Copilot** (phần tự gợi ý khi bạn đang gõ) hay **Tabnine**: các công cụ đó chỉ đoán và gợi ý **vài dòng code tiếp theo**. Còn Claude Code làm **cả một nhiệm vụ** từ đầu đến cuối.
+
+Ví dụ: bạn muốn thêm nút "Quên mật khẩu" vào trang đăng nhập.
+
+- **Công cụ gợi ý code:** bạn phải tự biết sửa file nào và tự gõ từng đoạn; công cụ chỉ gợi ý giúp vài dòng.
+- **Claude Code:** bạn chỉ cần nói *"Thêm nút Quên mật khẩu vào trang đăng nhập"*. Claude tự tìm file cần sửa, thêm nút, tạo trang đặt lại mật khẩu, rồi chạy thử xem có lỗi không.
+
+Cách làm thực tế: mở terminal trong thư mục dự án và gõ:
+
+```bash
+cd my-project     # vào thư mục dự án
+claude            # mở Claude Code
+> Thêm nút "Quên mật khẩu" vào trang đăng nhập
+```
+
+Khi xong, Claude báo lại những gì đã làm, ví dụ:
+
+```text
+✓ Tìm thấy trang đăng nhập: src/pages/login.tsx
+✓ Thêm nút "Quên mật khẩu"
+✓ Tạo trang mới: src/pages/forgot-password.tsx
+✓ Chạy thử: không có lỗi
+```
+
+- Tổng quan chính thức: [code.claude.com/docs/en/overview](https://code.claude.com/docs/en/overview)
+
+## Vibe Coding là gì?
+
+**Vibe coding** là cách làm phần mềm chủ yếu bằng việc mô tả kết quả mong muốn ("làm app todo có dark mode") và để AI viết phần lớn code, thay vì tự viết từng dòng. Thuật ngữ này do Andrej Karpathy đặt ra.
+
+| Phù hợp với | Cần lưu ý |
+| --- | --- |
+| Prototype, demo, công cụ cá nhân | Code bạn không đọc có thể ẩn lỗi và lỗ hổng bảo mật |
+| Học nhanh một framework mới | Dự án lớn dễ rối nếu không có cấu trúc |
+| Đi nhanh từ con số 0 tới "chạy được" | Code production vẫn cần review và test |
+
+<Callout title="Mẹo">
+Vibe coding chỉ là điểm khởi đầu. Với dự án thật, hãy kết hợp với Plan Mode, test và code review.
+</Callout>
+
+## Coding Agent là gì?
+
+**Coding agent** là AI có thể **tự làm việc thay bạn** (tự mở file, sửa code, chạy chương trình), chứ không chỉ trả lời câu hỏi. Nó có **công cụ** (đọc file, sửa file, chạy lệnh shell, tìm trên web) và tự quyết định dùng công cụ nào tiếp theo cho tới khi xong việc.
+
+| Trợ lý chat | Coding agent |
+| --- | --- |
+| Bạn dán code vào, AI trả lời | AI tự đọc file của bạn |
+| Bạn chép câu trả lời về | AI sửa file trực tiếp |
+| Bạn tự chạy test | AI chạy test và xử lý khi test lỗi |
+
+## Agentic Loop là gì?
+
+Mọi nhiệm vụ trong Claude Code chạy theo vòng lặp như sau:
+
+**Thu thập ngữ cảnh → lập kế hoạch → thực thi → kiểm chứng**, lặp lại cho tới khi đạt mục tiêu.
+
+Bạn có thể hình dung như một **thợ sửa xe**: xem xe → tìm chỗ hỏng → sửa → chạy thử. Chạy thử chưa ổn thì xem lại từ đầu.
+
+![Claude làm việc giống thợ sửa xe: xem xe (thu thập ngữ cảnh), tìm chỗ hỏng (lập kế hoạch), sửa (thực thi), chạy thử (kiểm chứng); chưa ổn thì lặp lại](/images/claude-code/agentic-loop.svg)
+
+**Ví dụ thực tế:** bạn nhờ Claude *"Nút Đăng ký trên trang web không bấm được, sửa giúp mình"*.
+
+1. **Thu thập ngữ cảnh**: Claude đọc các file liên quan tới nút Đăng ký để hiểu nút đang hoạt động thế nào.
+2. **Lập kế hoạch**: Claude tìm ra nguyên nhân khiến nút không bấm được và chọn cách sửa.
+3. **Thực thi**: Claude sửa file.
+4. **Kiểm chứng**: Claude chạy thử trang web. Nút **vẫn chưa** bấm được thì Claude quay lại bước 1 và tìm tiếp. Nút **đã** bấm được thì Claude báo cho bạn: "Đã sửa xong."
+
+<Callout title="Mẹo">
+Bạn có thể dừng vòng lặp bất cứ lúc nào bằng `Esc` và hướng Claude sang cách khác.
+</Callout>
+
+## Cài đặt Claude Code
+
+<Steps>
+<Step>
+### Cài đặt
+
+<Tabs items={['macOS / Linux / WSL', 'Windows (PowerShell)', 'npm (Node.js)']}>
+<Tab value="macOS / Linux / WSL">
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+</Tab>
+<Tab value="Windows (PowerShell)">
+```powershell
+irm https://claude.ai/install.ps1 | iex
+```
+</Tab>
+<Tab value="npm (Node.js)">
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+</Tab>
+</Tabs>
+</Step>
+
+<Step>
+### Chạy trong dự án
+
+```bash
+cd my-project
+claude
+```
+</Step>
+
+<Step>
+### Đăng nhập lần đầu
+
+Làm theo hướng dẫn trên trình duyệt, đăng nhập bằng tài khoản Claude (Pro, Max, Team, Enterprise) hoặc API key của Claude Console.
+</Step>
+
+<Step>
+### Kiểm tra cài đặt
+
+```bash
+claude --version
+claude doctor
+```
+</Step>
+</Steps>
+
+- Tài liệu: [Set up Claude Code](https://code.claude.com/docs/en/setup)
+
+## Gói đăng ký (Subscription)
+
+Khi có **gói đăng ký Claude**, việc dùng Claude Code đã nằm trong gói.
+
+| Gói | Dành cho |
+| --- | --- |
+| Pro | Cá nhân, dùng hằng ngày |
+| Max | Cá nhân dùng nhiều, hạn mức cao hơn |
+| Team | Nhóm nhỏ, quản lý và thanh toán chung |
+| Enterprise | Tổ chức: SSO, nhật ký kiểm tra, công cụ quản trị |
+
+Trong phiên, xem hạn mức còn lại bằng `/usage`.
+
+## Dùng qua API
+
+### Nguyên lý
+
+Dùng qua API nghĩa là bạn không trả tiền theo tháng. Thay vào đó, bạn trả theo **token** đã dùng.
+
+- **Token đầu vào:** mọi thứ bạn gửi cho Claude, gồm câu lệnh, đoạn code và nội dung các file Claude đã đọc.
+- **Token đầu ra:** phần Claude trả lời và các thao tác nó tạo ra.
+
+Giá khác nhau tùy model, thường tính theo mỗi triệu token. Việc đọc nhiều file, chạy nhiều vòng lặp hay làm việc dài sẽ tốn nhiều token hơn so với việc hỏi một câu đơn giản.
+
+### Cách kết nối
+
+Để Claude Code dùng API, đặt API key vào biến môi trường `ANTHROPIC_API_KEY`. Khi có key này, Claude Code dùng key thay cho đăng nhập gói.
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+claude
+```
+
+<Callout type="warn">
+Đừng bao giờ commit API key lên Git. Hãy để nó trong biến môi trường hoặc công cụ quản lý bí mật.
+</Callout>
+
+### So sánh với gói Free và gói trả trước
+
+| Tiêu chí | Gói Free | Gói trả theo tháng (Pro, Max) | API trả trước (mua credit) |
+| --- | --- | --- | --- |
+| Dùng được Claude Code | Không | Có | Có |
+| Cách tính tiền | Miễn phí | Cố định mỗi tháng | Mua credit trước, trừ dần theo token đã dùng |
+| Giới hạn | Rất hạn chế | Trần theo phiên 5 giờ và theo tuần | Không có trần theo phiên. Chỉ bị giới hạn bởi số dư và tốc độ theo cấp tài khoản |
+| Chi phí | Không có | Dự đoán được | Biến động theo lượng việc |
+| Khi hết hạn mức | Phải chờ | Chờ reset hoặc nâng gói | Dừng khi hết số dư, trừ khi bật nạp tự động |
+| Phù hợp với | Chỉ thử chat | Dùng hằng ngày | Tự động hóa, tích hợp vào hệ thống, dùng không đều |
+
+### Khi nào nên dùng API
+
+Nên dùng API khi Claude Code chạy **không có người ngồi chờ**, tức là được kích hoạt tự động, không ai gõ lệnh và đợi kết quả. Một ví dụ điển hình:
+
+**Tự động review code mỗi khi có pull request.** Nhóm dùng GitHub. Mỗi khi có người mở pull request, hệ thống tự động:
+
+1. Lấy đoạn code vừa thay đổi.
+2. Gửi cho Claude Code kiểm tra.
+3. Đăng kết quả (lỗi tiềm ẩn, gợi ý sửa) lên trang pull request.
+
+Không ai bấm gì cả. Khi người mở pull request quay lại, nhận xét đã có sẵn. Cấu hình minh họa:
+
+```yaml
+# .github/workflows/review.yml
+name: Review pull request
+on: pull_request
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g @anthropic-ai/claude-code
+      - run: claude -p "Xem các thay đổi so với nhánh main và liệt kê lỗi tiềm ẩn"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+- `claude -p` chạy Claude Code một lần rồi thoát, không mở giao diện chờ người gõ.
+- `${{ secrets.ANTHROPIC_API_KEY }}` đọc key từ phần bí mật trong cài đặt repo. Key không xuất hiện trong code.
+
+Các tình huống khác tương tự: báo cáo lỗi từ log mỗi sáng, hoặc cập nhật tự động tài liệu khi file gốc thay đổi.
+
+**Với tự động hóa, nên chọn API trả trước.** Hệ thống chạy liên tục nên cần luôn còn số dư. Gói Pro và Max dành cho việc ngồi làm trực tiếp, không dùng để chạy tự động.
+
+### Khi nào **không** nên dùng API
+
+- Bạn ngồi làm việc với Claude Code **đều đặn mỗi ngày**. Gói Pro hoặc Max thường dễ dự đoán chi phí hơn.
+- Bạn mới học. Gói đăng ký dễ bắt đầu hơn và ít rủi ro tốn tiền ngoài ý muốn.
+
+### Lưu ý khi dùng API
+
+- **Không có trần chi tiêu mặc định.** Nên đặt giới hạn chi tiêu trong Claude Console trước khi dùng.
+- **Luôn giữ số dư.** Khi hết credit, các lần chạy tự động sẽ lỗi mà không ai thấy ngay. Nên bật nạp tự động hoặc cảnh báo khi số dư thấp.
+- **Theo dõi chi phí.** Kiểm tra mức dùng trong Console để biết việc nào tốn nhiều token.
+- **Giá thay đổi theo thời gian.** Xem bảng giá chính thức tại [claude.com/pricing](https://claude.com/pricing).
+
+## Tài liệu tham khảo
+
+- [roadmap.sh: Claude Code](https://roadmap.sh/claude-code)
+- [Claude Code overview](https://code.claude.com/docs/en/overview)
+- [Claude Code in Action (khóa học)](https://anthropic.skilljar.com/claude-code-in-action)
+- [Claude Code 101 (khóa học)](https://anthropic.skilljar.com/claude-code-101)

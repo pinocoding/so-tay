@@ -1,0 +1,7 @@
+{
+  "title": "English",
+  "description": "Claude Code notes",
+  "root": true,
+  "icon": "Languages",
+  "pages": ["introduction", "ways-to-use-claude", "using-claude-code", "understand-the-basics"]
+}

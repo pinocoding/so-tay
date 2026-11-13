@@ -1,0 +1,216 @@
+---
+title: Using Claude Code
+description: Command cheatsheet — shortcuts, prefixes, CLI flags, slash commands, hook events and modes.
+icon: Terminal
+---
+
+Claude Code can edit files and run commands, so using it well is about **control**: knowing how to steer, stop, undo and limit what it does. This page is a cheatsheet; later topics go deeper.
+
+## Shortcuts & Prefixes
+
+### Keyboard shortcuts
+
+| Key | What it does | When to use it |
+| --- | --- | --- |
+| `Esc` | Stop Claude's current step (or close a menu) without losing context | Claude is heading the wrong way |
+| `Esc` `Esc` | Open the **rewind** menu to jump back to an earlier prompt | Undo a bad turn (chat, code, or both) |
+| `Ctrl+C` | Cancel the current input or operation; press twice to quit | Hard stop |
+| `Ctrl+R` | Search your prompt history | Re-use a long prompt |
+| `Ctrl+O` | Toggle the detailed transcript (every tool call) | See what Claude actually did |
+| `Ctrl+B` | Send a running command or agent to the background | Long builds, dev servers (tmux: press twice) |
+| `Ctrl+G` | Open the prompt in your text editor | Write or edit a long prompt or a plan |
+| `Shift+Tab` | Cycle permission modes | Switch to Plan or Auto mode |
+
+![Shift+Tab cycles between Plan, Manual, Accept edits and Auto](/images/claude-code/permission-modes.svg)
+
+### Prefixes
+
+| Prefix | Name | Example |
+| --- | --- | --- |
+| `/` | Slash command | `/help` |
+| `@` | File path mention | `Explain @src/auth/login.ts` |
+| `!` | Bash mode: run a shell command yourself, output is added to context | `! git status` |
+| `\` + `Enter` | Multiline input: continue on the next line | see below |
+
+```text
+> Refactor @src/api/user.ts: \
+  1. split it into smaller functions \
+  2. add JSDoc comments \
+  3. keep the public API unchanged
+```
+
+<Callout title="Tip">
+`! npm test` runs the command directly, without asking the model, so it's instant and uses no tokens to decide. Claude still sees the output.
+</Callout>
+
+## claude Commands & Flags
+
+| Command | Meaning |
+| --- | --- |
+| `claude` | Start an interactive session in the current folder |
+| `claude "query"` | Start a session with a first prompt |
+| `claude -p "query"` | **Print mode**: run once, print the result, exit (for scripts) |
+| `claude -c` | **Continue** the most recent conversation in this folder |
+| `claude -r` | **Resume**: pick any past session (or pass its ID) |
+| `claude --add-dir ../lib` | Give Claude access to another folder too |
+| `claude --cloud "task"` | Run the task in a new cloud session |
+| `claude --teleport` | Pull a cloud session into this terminal |
+| `claude --bare -p "..."` | Minimal start for scripts: skips hooks, skills, plugins, MCP, CLAUDE.md |
+| `claude --permission-mode plan` | Start in a specific mode (`default`, `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions`) |
+
+Examples:
+
+```bash
+# Ask a question about the repo and exit
+claude -p "Which files handle authentication?"
+
+# Pipe data in, get JSON out
+cat error.log | claude -p "Summarize the top 3 errors" --output-format json
+
+# Work on an app and its shared library at the same time
+claude --add-dir ../shared-ui
+
+# Lint-fix job in CI without prompts for file edits
+claude -p "Fix all ESLint errors" --permission-mode acceptEdits
+```
+
+## Session Commands
+
+| Command | What it does |
+| --- | --- |
+| `/help` | List commands and shortcuts |
+| `/clear` | Start fresh: wipe the conversation (use between unrelated tasks) |
+| `/exit` | Quit the session (resume later with `claude -c`) |
+| `/status` | Version, model, account, connection |
+| `/usage` | Remaining plan usage |
+| `/goal` | Set a finish condition; Claude keeps working until it's met |
+| `/export` | Save the conversation to a file or the clipboard |
+| `/rewind` | Go back to a checkpoint (conversation, code, or both) |
+| `/doctor` | Diagnose installation problems |
+| `/plan` | Enter Plan Mode |
+| `/schedule` | Create a scheduled cloud task |
+| `/desktop` | Continue this session in the Desktop app |
+| `/code-review` | Review your diff, a branch or a PR |
+| `/ultrareview` | Deep multi-agent review in the cloud |
+| `/remote-control` | Make this session controllable from web/phone |
+
+```text
+/goal npm test exits with code 0
+/schedule every weekday at 9am, review open PRs in my-api
+/code-review 128          # review pull request #128
+```
+
+## Context & Memory
+
+| Command | What it does |
+| --- | --- |
+| `/context` | Show what is filling the context window |
+| `/compact` | Summarize the conversation to free space but keep the key points |
+| `/memory` | Edit `CLAUDE.md` memory files |
+| `/init` | Scan the project and create a starter `CLAUDE.md` |
+
+```text
+/init
+/compact keep the decisions about the database schema
+```
+
+<Callout type="warn">
+`/clear` forgets everything in the conversation; `/compact` keeps a summary. Use `/clear` when switching to an unrelated task.
+</Callout>
+
+## Configuration
+
+| Command | What it does |
+| --- | --- |
+| `/config` | Open settings (theme, default model, editor…) |
+| `/permissions` | Allow or deny tools and commands |
+| `/model` | Switch model |
+| `/agents` | Manage subagents |
+| `/mcp` | Manage MCP server connections |
+| `/hooks` | View configured hooks |
+
+Permission rules live in `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(npm test)", "Bash(npm run lint)"],
+    "deny": ["Read(./.env)", "Bash(rm -rf:*)"]
+  }
+}
+```
+
+## Hooks
+
+Hooks run **your** command automatically at fixed moments. They are configured in `.claude/settings.json`.
+
+| Event | Fires when | Typical use |
+| --- | --- | --- |
+| `SessionStart` | A session starts | Load project info into context |
+| `SessionEnd` | A session ends | Clean up, write a log |
+| `UserPromptSubmit` | You press Enter, before the model sees it | Add context, block secrets |
+| `PreToolUse` | Before a tool runs (can block it) | Stop dangerous commands |
+| `PostToolUse` | After a tool finishes | Format or lint edited files |
+| `PermissionRequest` | Claude is about to ask you for permission | Auto-allow or deny |
+| `Stop` | Claude finishes its reply | Notify you, run final checks |
+| `SubagentStop` | A subagent finishes | Check its result |
+
+Example: format every file Claude edits.
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "jq -r '.tool_input.file_path' | xargs npx prettier --write" }]
+      }
+    ]
+  }
+}
+```
+
+The hook receives details about the tool call as JSON on standard input; here `jq` extracts the edited file's path.
+
+## Modes
+
+### Plan
+
+**Plan Mode** is read-only: Claude explores the code and writes a plan, but edits nothing until you approve.
+
+```text
+Shift+Tab (until "plan mode on")    or    /plan
+> Plan how to add dark mode to the settings page.
+```
+
+Review the plan (press `Ctrl+G` to edit it), then approve to let Claude implement it.
+
+<Callout title="Tip">
+Use Plan Mode for anything that touches many files. A five-minute plan saves an hour of undoing.
+</Callout>
+
+### Auto
+
+**Auto mode** removes the per-action prompts: a separate classifier model checks each action and blocks ones that go beyond your request or look risky. Explicit "ask" rules still prompt you.
+
+```bash
+claude --permission-mode auto
+```
+
+It reduces interruptions, but it is not a guarantee of safety. Keep using Git, tests and deny rules.
+
+## Good habits
+
+1. **Start in Plan Mode** for big changes.
+2. **Commit before** letting Claude make large edits, so `git diff` shows everything.
+3. **`/clear` between tasks** to keep context small, fast and cheap.
+4. **Give a way to verify**: "…and run `npm test` until it passes."
+5. **Put repeated instructions in `CLAUDE.md`** instead of retyping them.
+
+## References
+
+- [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices)
+- [CLI reference](https://code.claude.com/docs/en/cli-reference)
+- [Interactive mode (shortcuts)](https://code.claude.com/docs/en/interactive-mode)
+- [Hooks](https://code.claude.com/docs/en/hooks)
+- [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices)

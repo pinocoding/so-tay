@@ -1,0 +1,7 @@
+{
+  "title": "日本語",
+  "description": "Ghi chú Mendix",
+  "root": true,
+  "icon": "Languages",
+  "pages": ["introduction"]
+}

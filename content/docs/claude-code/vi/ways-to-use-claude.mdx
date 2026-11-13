@@ -1,0 +1,169 @@
+---
+title: Các cách dùng Claude
+description: Những nơi Claude Code chạy được, và cách làm việc từ bất cứ đâu.
+icon: MonitorSmartphone
+---
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Claude Code là **một bộ máy agent duy nhất** mà bạn truy cập từ nhiều nơi. Chọn nơi phù hợp với lúc làm việc; dự án, `CLAUDE.md` và cài đặt vẫn giữ nguyên.
+
+![Nơi Claude Code chạy: CLI, Desktop, Editor, Web, Mobile, cùng Remote Control, Teleport, Dispatch, Channels, Slack và Chrome](/images/claude-code/surfaces.svg)
+
+## Các nơi sử dụng (Surfaces)
+
+### CLI
+
+Terminal là cách dùng đầu tiên và linh hoạt nhất. Mọi cách khác đều xây dựng trên nó.
+
+```bash
+cd my-project
+claude                              # phiên tương tác
+claude "giải thích dự án này"       # bắt đầu kèm prompt đầu tiên
+claude -p "liệt kê các comment TODO" # chạy một lần, in kết quả rồi thoát
+```
+
+**Dùng khi:** bạn làm việc chủ yếu trong terminal, cần script hoặc tự động hóa, hoặc muốn dùng tính năng mới sớm nhất.
+
+### Desktop
+
+Ứng dụng **Claude Code Desktop** có giao diện đồ họa: xem diff trực quan, chạy nhiều phiên song song, không cần terminal.
+
+```text
+/desktop    # trong phiên terminal: tiếp tục phiên này trên app Desktop
+```
+
+**Dùng khi:** bạn thích bấm chuột hơn gõ lệnh, hoặc muốn xem diff bằng mắt.
+
+### Web
+
+**Claude Code on the web** chạy phiên trên cloud của Anthropic, không phải trên máy bạn. Nó clone repo GitHub của bạn vào môi trường cloud, nên phiên vẫn chạy khi bạn gập laptop.
+
+```bash
+# mở phiên cloud từ terminal (push commit trước)
+git push
+claude --cloud "Thêm kiểm tra dữ liệu cho form đăng ký"
+```
+
+Bạn cũng có thể bắt đầu tại [claude.ai/code](https://claude.ai/code).
+
+**Dùng khi:** việc dài, muốn chạy nhiều việc song song, hoặc muốn theo dõi từ thiết bị khác.
+
+### Mobile
+
+Không có app Claude Code riêng cho điện thoại. **App Claude** (iOS và Android) mở các phiên Claude Code trong tab **Code**. Từ điện thoại bạn có thể:
+
+- bắt đầu và theo dõi phiên cloud,
+- điều khiển phiên đang chạy trên máy tính của bạn (Remote Control),
+- gửi việc cho Dispatch.
+
+```text
+/mobile    # hiện mã QR để cài app
+```
+
+### Extension cho Editor
+
+Extension cho **VS Code** (và các bản fork như Cursor) và **JetBrains IDE** (IntelliJ IDEA, PyCharm, WebStorm…) đưa Claude Code vào thanh bên, hiện diff ngay cạnh code. Claude còn biết file đang mở, đoạn bạn chọn và lỗi trong editor.
+
+<Steps>
+<Step>Cài "Claude Code" từ VS Code Marketplace hoặc JetBrains Marketplace.</Step>
+<Step>Mở dự án và bấm biểu tượng Claude ở thanh bên.</Step>
+<Step>Chọn một đoạn code và hỏi: `Giải thích hàm này và gợi ý cách viết đơn giản hơn`.</Step>
+</Steps>
+
+## Làm việc từ bất cứ đâu
+
+### Remote Control
+
+Remote Control cho phép điều khiển phiên **đang chạy trên máy của bạn** từ [claude.ai/code](https://claude.ai/code) hoặc app Claude trên điện thoại. Claude vẫn chạy ở máy, nên file, MCP server và cấu hình đều dùng được.
+
+```bash
+claude remote-control      # mở phiên có thể điều khiển từ xa
+```
+
+```text
+/remote-control            # cho phép điều khiển từ xa phiên hiện tại
+```
+
+**Ví dụ:** bắt đầu một đợt refactor dài ở bàn làm việc, rồi duyệt bước tiếp theo của Claude bằng điện thoại khi đang ra ngoài.
+
+### Teleport & Handoff
+
+Chuyển công việc **giữa các nơi** mà không mất hội thoại.
+
+| Lệnh | Hướng |
+| --- | --- |
+| `claude --cloud "task"` | Terminal → phiên cloud mới |
+| `claude --teleport` | Phiên cloud → terminal (checkout branch, nạp lịch sử) |
+| `/teleport` (hoặc `/tp`) | Như trên, gõ trong phiên |
+| `/desktop` | Terminal → app Desktop |
+
+```bash
+claude --teleport                 # chọn phiên cloud từ danh sách
+claude --teleport <session-id>    # mở lại một phiên cụ thể
+```
+
+<Callout type="warn">
+Teleport cần Git sạch (nó sẽ đề nghị stash thay đổi) và branch đã push. Terminal nhận một bản sao riêng: việc làm tiếp ở đó không hiện trong phiên cloud.
+</Callout>
+
+### Dispatch
+
+**Dispatch** là một cuộc hội thoại liên tục mà bạn nhắn từ điện thoại. Khi bạn mô tả một việc lập trình, Dispatch mở phiên Claude Code trên app Desktop ở máy bạn và báo cho bạn khi xong hoặc khi cần duyệt.
+
+```text
+Bạn (điện thoại): "Cập nhật thư viện trong my-api và chạy test"
+Dispatch:          mở phiên trên Desktop → chạy → "Xong, đã sửa 2 test. Tạo PR không?"
+```
+
+Điều kiện: gói Pro hoặc Max, máy tính phải bật và app Desktop đang chạy.
+
+### Channels
+
+**Channels** đẩy tin nhắn và sự kiện từ bên ngoài (Telegram, Discord, iMessage, webhook) **vào phiên đang chạy**, để Claude phản ứng cả khi bạn vắng mặt. Mỗi channel được cài như một plugin (là một MCP server).
+
+**Ví dụ:** webhook giám sát báo "tỷ lệ lỗi API cao" vào phiên đang chạy; Claude đọc log và soạn bản sửa.
+
+## Tích hợp
+
+### Slack
+
+Gọi `@Claude` trong kênh Slack kèm báo lỗi hoặc yêu cầu. Claude mở phiên cloud, đăng tiến độ trong thread, và kết thúc bằng bản tóm tắt cùng nút xem phiên hoặc tạo pull request.
+
+```text
+@Claude Trang /orders tính sai tổng tiền khi áp mã giảm giá. Sửa giúp trong shop-web.
+```
+
+**Claude Tag** là phiên bản do tổ chức quản lý cho gói Team và Enterprise, dùng danh tính chung và quyền truy cập do admin cấu hình.
+
+### Chrome
+
+Extension **Claude in Chrome** cho phép Claude Code điều khiển trình duyệt: mở tab, bấm, gõ, đọc console và cấu trúc trang. Rất tiện để test và debug web app.
+
+```bash
+claude --chrome            # khởi động có kết nối Chrome
+```
+
+```text
+/chrome                    # bật từ trong phiên
+> Mở localhost:3000, đăng ký bằng user test và báo cho mình các lỗi trong console.
+```
+
+Nó dùng chung trạng thái đăng nhập của trình duyệt, và tạm dừng ở trang đăng nhập hoặc CAPTCHA để bạn tự xử lý.
+
+## Nên chọn cách nào?
+
+| Tình huống | Nên dùng |
+| --- | --- |
+| Code hằng ngày tại bàn | CLI hoặc Extension cho Editor |
+| Thích app trực quan | Desktop |
+| Việc dài, muốn gập laptop | Web (`--cloud`) |
+| Đang ra ngoài | Mobile + Remote Control hoặc Dispatch |
+| Nhóm báo lỗi trong chat | Slack |
+| Test giao diện web | Chrome |
+
+## Tài liệu tham khảo
+
+- [Use Claude Code everywhere](https://code.claude.com/docs/en/overview#use-claude-code-everywhere)
+- [Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web)
+- [Claude Cowork vs. Code vs. Chat](https://roadmap.sh/claude-code/vs-cowork-vs-chat)
